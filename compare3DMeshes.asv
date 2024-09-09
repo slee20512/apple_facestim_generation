@@ -1,0 +1,38 @@
+% Load STL files
+fv1 = stlread('SeojinE.stl');
+fv2 = stlread('Neptune_.stl');
+
+% Compare the 3d faces (base + mesh)
+
+% Method 1: Point-to-surface distance calculation
+% Measures the distance from each vertex in one mesh to the entire surface
+% of the other mesh. 
+
+[indices, distances] = knnsearch(ptCloud2.Location, ptCloud1.Location);
+
+% Method 2: Hausdorff distance
+% Measures the maximum distance from a point on one surface to the closest
+% point on another surface (captures the worst-case scenario of how
+% different two 
+
+% Access vertices
+vertices1 = fv1.Points;
+vertices2 = fv2.Points;
+
+% Compute the Euclidean distance between corresponding vertices
+[indices, distances] = knnsearch(vertices2, vertices1);
+
+ptCloud1 = pointCloud(vertices1); % Create point cloud from vertices
+ptCloud2 = pointCloud(vertices2); % Create point cloud from vertices
+
+% Perform ICP registration
+[tform, ptCloudAligned, rmse] = pcregistericp(ptCloud2, ptCloud1);
+
+% ptCloudAligned is the aligned point cloud of the second mesh
+% rmse is the root mean square error of the alignment
+D = pdist2(ptCloud1.Location, ptCloudAligned.Location);
+
+% Minimum distances for each point in ptCloud1
+minDistances = min(D, [], 2);
+% % Now, you can compare ptCloud1 and ptCloudAligned
+% distances = sqrt(sum((ptCloud1.Location - ptCloudAligned.Location).^2, 2));
